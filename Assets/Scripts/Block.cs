@@ -71,9 +71,16 @@ public class Block : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        Gizmos.color=Color.cyan;
+        foreach (var v in neighbours)
+        {
+            Gizmos.DrawLine(this.transform.position, v.transform.position);
+        }
+
+        
         Gizmos.color = Color.blue;
         Gizmos.DrawSphere(transform.position, 0.1f);
-        
+        return;
         if ((remainPatch & BlockRemainPatch.UpLeft) != 0)
         {
             Gizmos.color=Color.magenta;
@@ -88,10 +95,6 @@ public class Block : MonoBehaviour
             Gizmos.color=Color.green;
             Gizmos.DrawWireCube(new Vector3(osXY.x, osXY.y,1), new Vector3(1,1,1));
         }
-        Gizmos.color=Color.cyan;
-        foreach (var v in neighbours)
-        {
-            Gizmos.DrawLine(this.transform.position, v.transform.position);
-        }
+        
     }
 }

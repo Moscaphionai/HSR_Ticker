@@ -184,51 +184,59 @@ public class BlockManager : MonoBehaviour
 
     private void CullBlockByDepth(Dictionary<Vector2Int, BlockGroup> osMap)
     {
-        Dictionary<Vector2Int, float> zMap = new();
+        Dictionary<Vector2Int, float> zUpperMap = new();
+        Dictionary<Vector2Int, float> zLowerMap = new();
         foreach (var block in osMap.Values.SelectMany(g => g))
         {
-            if ((block.remainPatch & BlockRemainPatch.UpLeft) != 0 || (block.remainPatch & BlockRemainPatch.UpRight) != 0)
+            if ((block.remainPatch & BlockRemainPatch.UpLeft) != 0 )
             {
-                SetZMap(block.osXY, block.vsDepth);
+                SetZMap(block.osXY, block.vsDepth,zLowerMap);
             }
-
-            if ((block.remainPatch & BlockRemainPatch.LeftDown) != 0 ||
-                (block.remainPatch & BlockRemainPatch.RightDown) != 0)
+            if ((block.remainPatch & BlockRemainPatch.UpRight) != 0 )
             {
-                SetZMap(block.osXY + new Vector2Int(-1, -1), block.vsDepth);
-            }
-
-            if ((block.remainPatch & BlockRemainPatch.LeftUp) != 0)
-            {
-                SetZMap(block.osXY + new Vector2Int(-1, 0), block.vsDepth);
+                SetZMap(block.osXY, block.vsDepth,zUpperMap);
             }
 
             if ((block.remainPatch & BlockRemainPatch.RightUp) != 0)
             {
-                SetZMap(block.osXY + new Vector2Int(0, -1), block.vsDepth);
+                SetZMap(block.osXY + new Vector2Int(0, -1), block.vsDepth,zLowerMap);
+            }
+
+            if ((block.remainPatch & BlockRemainPatch.LeftUp) != 0)
+            {
+                SetZMap(block.osXY + new Vector2Int(-1, 0), block.vsDepth,zUpperMap);
+            }
+
+            if ((block.remainPatch & BlockRemainPatch.LeftDown) != 0)
+            {
+                SetZMap(block.osXY + new Vector2Int(-1, -1), block.vsDepth,zLowerMap);
+            }
+            if ((block.remainPatch & BlockRemainPatch.RightDown) != 0)
+            {
+                SetZMap(block.osXY + new Vector2Int(-1, -1), block.vsDepth,zUpperMap);
             }
         }
 
         foreach (var block in osMap.Values.SelectMany(g => g))
         {
             if ((block.remainPatch & BlockRemainPatch.LeftUp) != 0 &&
-                zMap.TryGetValue(block.osXY, out float a)
+                zLowerMap.TryGetValue(block.osXY, out float a)
                 && block.vsDepth < a)
             {
-                block.remainPatch &= ~BlockRemainPatch.LeftUp;
+                block.remainPatch &= ~BlockRemainPatch.UpLeft;
             }
 
             if ((block.remainPatch & BlockRemainPatch.RightUp) != 0 &&
-                zMap.TryGetValue(block.osXY, out float b) &&
+                zUpperMap.TryGetValue(block.osXY, out float b) &&
                 block.vsDepth < b)
             {
-                block.remainPatch &= ~BlockRemainPatch.RightUp;
+                block.remainPatch &= ~BlockRemainPatch.UpRight;
             }
         }
 
         return;
 
-        void SetZMap(Vector2Int pos, float depth)
+        void SetZMap(Vector2Int pos, float depth,Dictionary<Vector2Int, float> zMap)
         {
             if (!zMap.TryGetValue(pos, out float z))
             {
@@ -236,7 +244,7 @@ public class BlockManager : MonoBehaviour
             }
             else
             {
-                zMap[pos] = Mathf.Min(depth, z);
+                zMap[pos] = Mathf.Max(depth, z);
             }
         }
     }
@@ -363,6 +371,7 @@ public class BlockManager : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        return;
         Gizmos.color = Color.yellow;
 
         /*foreach (var op in ops)
